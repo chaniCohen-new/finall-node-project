@@ -1,7 +1,7 @@
 import Exam from "../models/exam.model";
 
 export const getAllExams = async (req, res, next) => {
-    if (req.user.role == 'admin')
+    if (req.user.role === 'admin')
         try {
             const exams = await Exam.find();
             return res.json(exams);
@@ -11,6 +11,25 @@ export const getAllExams = async (req, res, next) => {
         }
     return res.json({ msg: "permission denied" })
 };
+
+export const getExamById = async (req, res, next) => {
+    const { id } = req.params;
+    if (req.user.role === 'user')
+        try {
+            const exam = await Exam.findOne({ _id: id });// SELECT * FROM exams WHERE _id=id
+            if (!exam) {
+                return next({
+                    error: new Error(`exam ${id} not found!`),
+                    status: 404
+                });
+            }
+            return res.json(exam);
+        } catch (error) {
+            return next({ error });
+        }
+    return res.json({ msg: "permission denied" })
+};
+
 
 export const addExam = async (req, res, next) => {
     if (req.user.role === 'user') {
@@ -31,3 +50,4 @@ export const addExam = async (req, res, next) => {
     }
     return res.status(403).json({ msg: "Permission denied" });
 };
+
