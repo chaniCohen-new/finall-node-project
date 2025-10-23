@@ -5,7 +5,7 @@ import cors from 'cors';
 import { config } from 'dotenv';
 
 // ייבוא של כל הראוטרים
-
+import examRouter from './routes/exam.route.js';
 
 import { connectDB } from './config/db.js';
 
@@ -27,6 +27,9 @@ app.use(morgan('dev'));
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
+
+app.use('/exams', examRouter);
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

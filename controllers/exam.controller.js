@@ -1,4 +1,4 @@
-import Exam from "../models/exam.model";
+import Exam from "../models/exam.model.js";
 
 export const getAllExams = async (req, res, next) => {
     if (req.user.role === 'admin')
