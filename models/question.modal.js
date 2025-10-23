@@ -1,23 +1,30 @@
 import mongoose, { model, Schema, SchemaTypes } from "mongoose";
+import Joi from "joi";
+import JoiObjectId from "joi-objectid";
 
 const questionModel = new Schema({
     question: {
         type: String,
-        required: true,
     },
     answer: {
         type: String,
-        required: true,
     },
     optional: {
         type: [String],
-        required: true,
     },
     lesson: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
         ref: "Exam"
     }
+});
+
+const joiObjectId = JoiObjectId(Joi);
+
+export const questionJoi = Joi.object({
+    question: Joi.string().required(),
+    answer: Joi.string().required(),
+    optional: Joi.array().items(Joi.string()).required(), // רשימה של מחרוזות
+    lesson: joiObjectId().required(),
 });
 
 export default model("Question", questionModel);
