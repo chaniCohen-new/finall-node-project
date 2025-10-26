@@ -1,7 +1,7 @@
 import Exam from "../models/exam.model.js";
 
 export const getAllExams = async (req, res, next) => {
-    if (req.user.role === 'admin')
+    // if (req.user.role === 'admin')
         try {
             const exams = await Exam.find();
             return res.json(exams);
@@ -9,7 +9,7 @@ export const getAllExams = async (req, res, next) => {
         catch (error) {
             return next({ error });
         }
-    return res.json({ msg: "permission denied" })
+    // return res.json({ msg: "permission denied" })
 };
 
 export const getExamById = async (req, res, next) => {

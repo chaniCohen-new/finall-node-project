@@ -6,6 +6,7 @@ import { config } from 'dotenv';
 
 // ייבוא של כל הראוטרים
 import examRouter from './routes/exam.route.js';
+import userRauter from './routes/user.router.js';
 
 import { connectDB } from './config/db.js';
 
@@ -29,6 +30,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/exams', examRouter);
+app.use('/users', userRauter)
 
 
 const PORT = process.env.PORT || 3000;
