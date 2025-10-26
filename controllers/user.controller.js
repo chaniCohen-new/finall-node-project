@@ -19,3 +19,26 @@ export const addUser = async (req, res, next) => {
         return res.status(403).json({ message: 'Access denied. Only admins can add users.' });
     }
 };
+
+export const getAllUsers = async (req, res) => {
+    if (req.user.role == "admin") {
+
+        const allUsers = await User.find({}, { password: 0 }).sort({ name: 1 })
+        return res.json(allUsers)
+    }
+    return res.json({ msg: 'denied' }).status(401)
+};
+
+export const getUsersById = async (req, res) => {
+    if (req.user.role == "admin") {
+        const { id } = req.params
+        if (!id) return res.status(400).send("id is require!")
+        const user = await User.findOne({ _id: id }, { password: 0 })
+        return res.json(user)
+    }
+    if (req.user.role == "user") {
+        const _id = req.user._id
+        const user = await User.findOne({ _id }, { password: 0 })
+        return res.json(user)
+    }
+};
