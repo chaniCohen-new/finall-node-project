@@ -14,7 +14,7 @@ const questionModel = new Schema({
     },
     lesson: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Exam"
+        ref: "Lesson"
     }
 });
 
