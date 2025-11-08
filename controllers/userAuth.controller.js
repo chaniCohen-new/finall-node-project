@@ -3,10 +3,6 @@ import bcrypt from 'bcryptjs';
 import jwt from "jsonwebtoken";
 
 export const login = async (req, res, next) => {
-    const { error } = userJoi.login.validate(req.body);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-    }
 
     const { username, password } = req.body;
 
@@ -45,10 +41,6 @@ export const login = async (req, res, next) => {
 };
 
 export const register = async (req, res, next) => {
-    const { error } = userJoi.register.validate(req.body);
-    if (error) {
-        return res.status(400).json({ message: error.details[0].message });
-    }
 
     const { username, password, email, phone, role } = req.body;
 
