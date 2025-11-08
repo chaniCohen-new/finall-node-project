@@ -1,9 +1,12 @@
 import express from 'express';
 import { createNewLesson, getAllLessons, getLessonsByLevel, getLessonById, deleteLesson, updateLesson } from '../controllers/lesson.controller.js';
 
+import { validateBody } from '../middlewares/validate.middleware.js'; 
+import { lessonJoi } from '../models/lesson.model.js';
+
 const router = express.Router();
 
-router.post('/', createNewLesson);
+router.post('/', validateBody(lessonJoi), createNewLesson);
 
 router.get('/', getAllLessons);
 
@@ -11,7 +14,7 @@ router.get('/level/:level', getLessonsByLevel);
 
 router.get('/:id', getLessonById);
 
-router.put('/:id', updateLesson);
+router.put('/:id',validateBody(lessonJoi), updateLesson);
 
 router.delete('/', deleteLesson);
 
