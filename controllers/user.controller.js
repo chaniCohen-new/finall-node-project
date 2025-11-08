@@ -1,13 +1,14 @@
 import User, { userJoi } from "../models/user.model.js";
+import Exam from "../models/exam.model.js";
 
 // פונקציה להוספת משתמש
 export const addUser = async (req, res, next) => {
     const { username, password, email, phone, role } = req.body;
 
-    const user = req.user; // תפקיד המנהל צריך להיות מאומת כאן
+    const user = req.user; 
 
     // בדוק אם המשתמש הוא מנהל
-    if (user && user.role === 'admin') {
+    if (user && user?.role === 'admin') {
         try {
             const newUser = new User({ username, password, email, phone, role });
             await newUser.save();
@@ -21,13 +22,13 @@ export const addUser = async (req, res, next) => {
 };
 
 export const getAllUsers = async (req, res) => {
-    if (req.user.role == "admin") {
+    // if (req.user.role == "admin") {
 
         const allUsers = await User.find({}, { password: 0 }).sort({ name: 1 })
         return res.json(allUsers)
     }
-    return res.json({ msg: 'denied' }).status(401)
-};
+    // return res.json({ msg: 'denied' }).status(401)
+// };
 
 export const getUsersById = async (req, res) => {
     if (req.user.role == "admin") {
@@ -41,4 +42,21 @@ export const getUsersById = async (req, res) => {
         const user = await User.findOne({ _id }, { password: 0 })
         return res.json(user)
     }
+};
+
+
+
+export const deleteUser = async (req, res) => {
+    const _id = req.user?.role === "user" ? req.user._id : req.body._id;
+
+    const user = await User.findById(_id);
+    if (!user) return res.status(400).send("not found");
+
+    if (req.user?.role !== "user") {
+        const exams = await Exam.find({ user: _id });
+        await Promise.all(exams.map(exam => exam.deleteOne()));
+    }
+
+    await user.deleteOne();
+    return res.send(`${_id} deleted`);
 };

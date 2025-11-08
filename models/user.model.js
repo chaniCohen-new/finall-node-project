@@ -11,7 +11,7 @@ const userSchema = new Schema({
 
 export const userJoi = {
     login: Joi.object({
-        email: Joi.string().required(),
+        username: Joi.string().required(),
         password: Joi.string().required()
     }),
     register: Joi.object({
