@@ -1,5 +1,6 @@
 import User, { userJoi } from "../models/user.model.js";
 import bcrypt from 'bcryptjs';
+import jwt from "jsonwebtoken";
 
 export const login = async (req, res, next) => {
     const { error } = userJoi.login.validate(req.body);
@@ -37,10 +38,10 @@ export const login = async (req, res, next) => {
     };
 
     // צור טוקן גישה
-    const accessToken = jwt.sign(userToken, process.env.ACCESS_TOKEN_SECRET);
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     // החזר את הטוקן ואת תפקיד המשתמש
-    res.json({ token: accessToken, role: userToken.role });
+    res.json({ token: token, role: userToken.role });
 };
 
 export const register = async (req, res, next) => {
