@@ -1,22 +1,19 @@
 import Exam from "../models/exam.model.js";
 
 export const getAllExams = async (req, res, next) => {
-    // if (req.user.role === 'admin')
-        try {
-            const exams = await Exam.find();
-            return res.json(exams);
-        }
-        catch (error) {
-            return next({ error });
-        }
-    // return res.json({ msg: "permission denied" })
+    try {
+        const exams = await Exam.find();
+        return res.json(exams);
+    } catch (error) {
+        return next(error); // הפניית השגיאה למידלוואר
+    }
 };
 
 export const getExamById = async (req, res, next) => {
     const { id } = req.params;
-    if (req.user.role === 'user')
+    if (req.user.role === 'user') {
         try {
-            const exam = await Exam.findOne({ _id: id });// SELECT * FROM exams WHERE _id=id
+            const exam = await Exam.findOne({ _id: id }); // SELECT * FROM exams WHERE _id=id
             if (!exam) {
                 return next({
                     error: new Error(`exam ${id} not found!`),
@@ -25,11 +22,11 @@ export const getExamById = async (req, res, next) => {
             }
             return res.json(exam);
         } catch (error) {
-            return next({ error });
+            return next(error); // הפניית השגיאה למידלוואר
         }
-    return res.json({ msg: "permission denied" })
+    }
+    return res.status(403).json({ msg: "permission denied" });
 };
-
 
 export const addExam = async (req, res, next) => {
     if (req.user.role === 'user') {
@@ -45,9 +42,8 @@ export const addExam = async (req, res, next) => {
             await newExam.save();
             return res.status(201).json(newExam);
         } catch (error) {
-            return next({ error: error.message, status: 500 });
+            return next(error); // הפניית השגיאה למידלוואר
         }
     }
     return res.status(403).json({ msg: "Permission denied" });
 };
-

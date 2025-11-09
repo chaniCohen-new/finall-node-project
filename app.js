@@ -39,7 +39,7 @@ app.get('/', (req, res) => {
 app.use('/exams', examRouter);
 app.use('/lessons', lessonRouter);
 app.use('/users', userRauter);
-app.use('/auth', authRouter);
+app.use('/', authRouter);
 
 app.use(errorHandler);
 

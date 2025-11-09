@@ -1,7 +1,7 @@
 import Lesson from '../models/lesson.model.js';
 import Word from '../models/word.modal.js';
 
-export const createNewLesson = async (req, res) => {
+export const createNewLesson = async (req, res, next) => {
     if (req.user.role == "admin") {
         const { level, category } = req.body; 
         console.log("kkkkkkkkkkkkkkkkkkkkk", { level, category });
@@ -9,48 +9,62 @@ export const createNewLesson = async (req, res) => {
         if (!level) return res.status(400).send("Level is require!");
         if (!category) return res.status(400).send("Category is require!");
 
-        // חפש אם יש כבר שיעור עם אותו level ו-category
-        const checkLevelCategory = await (await Lesson.find({ category, level })).map(less => {
-            return { category: less.category, level: less.level };
-        });
-        console.log({ checkLevelCategory });
+        try {
+            // חפש אם יש כבר שיעור עם אותו level ו-category
+            const checkLevelCategory = await Lesson.find({ category, level }).lean();
+            console.log({ checkLevelCategory });
 
-        // אם יש שיעור קיים, שלח הודעת שגיאה
-        if (checkLevelCategory?.length) return res.status(401).send("level & category are exist!!");
+            // אם יש שיעור קיים, שלח הודעת שגיאה
+            if (checkLevelCategory?.length) return res.status(401).send("level & category are exist!!");
 
-        await Lesson.create({ level, category });
-        return res.json({ level, category }); // שלח את השיעור שנוסף
+            await Lesson.create({ level, category });
+            return res.json({ level, category }); // שלח את השיעור שנוסף
+        } catch (error) {
+            next(error); // הפניית השגיאה למידלוואר
+        }
     }
     return res.json({ msg: "permission denied" }); // אם המשתמש לא אדמין
 };
 
-export const getAllLessons = async (req, res) => {
+export const getAllLessons = async (req, res, next) => {
     if (req.user.role == "admin") {
-        const allLessons = await Lesson.find().sort({ category: 1 }).lean();
-        return res.json(allLessons);
+        try {
+            const allLessons = await Lesson.find().sort({ category: 1 }).lean();
+            return res.json(allLessons);
+        } catch (error) {
+            next(error); // הפניית השגיאה למידלוואר
+        }
     }
     return res.json({ msg: "permission denied" });
-}
+};
 
-export const getLessonsByLevel = async (req, res) => {
+export const getLessonsByLevel = async (req, res, next) => {
     const { level } = req.params;
-    const allLessons = await Lesson.find({ level }).sort({ category: 1 }).lean();
-    return res.json(allLessons);
-}
+    try {
+        const allLessons = await Lesson.find({ level }).sort({ category: 1 }).lean();
+        return res.json(allLessons);
+    } catch (error) {
+        next(error); // הפניית השגיאה למידלוואר
+    }
+};
 
-export const getLessonById = async (req, res) => {
+export const getLessonById = async (req, res, next) => {
     if (req.user.role == "admin") {
         const { id } = req.params;
         if (!id) return res.status(400).send("id is require!");
 
-        const lesson = await Lesson.find({ _id: id });
-        if (!lesson?.length) return res.status(400).send("not exist!");
-        return res.json(lesson);
+        try {
+            const lesson = await Lesson.find({ _id: id });
+            if (!lesson?.length) return res.status(400).send("not exist!");
+            return res.json(lesson);
+        } catch (error) {
+            next(error); // הפניית השגיאה למידלוואר
+        }
     }
     return res.json({ msg: "permission denied" });
-}
+};
 
-export const updateLesson = async (req, res) => {
+export const updateLesson = async (req, res, next) => {
     if (req.user.role == "admin") {
         const { _id, level, category } = req.body; // קבל את ה-id, level וה-category מהבקשה
 
@@ -58,51 +72,50 @@ export const updateLesson = async (req, res) => {
         if (!level) return res.status(400).send("level is require!");
         if (!category) return res.status(400).send("category is require!");
 
-        const lesson = await Lesson.find({ _id });
-        if (!lesson) return res.status(400).send("not exist");
+        try {
+            const lesson = await Lesson.findById(_id);
+            if (!lesson) return res.status(400).send("not exist");
 
-        // אם ה-level או ה-category שונים מהערכים הקיימים
-        if (lesson.level !== level || lesson.category !== category) {
-            // חפש אם יש שיעור אחר עם אותם level ו-category
-            const checkLevelCategory = await (await Lesson.find({ category, level })).map(less => {
-                return { category: less.category, level: less.level };
-            });
-            console.log({ checkLevelCategory });
+            // אם ה-level או ה-category שונים מהערכים הקיימים
+            if (lesson.level !== level || lesson.category !== category) {
+                // חפש אם יש שיעור אחר עם אותם level ו-category
+                const checkLevelCategory = await Lesson.find({ category, level }).lean();
+                console.log({ checkLevelCategory });
 
-            // אם יש שיעור קיים, שלח הודעת שגיאה
-            if (checkLevelCategory?.length) return res.status(400).send("level & category are exist!!");
+                // אם יש שיעור קיים, שלח הודעת שגיאה
+                if (checkLevelCategory?.length) return res.status(400).send("level & category are exist!!");
+            }
+
+            // עדכן את ה-category וה-level של השיעור
+            lesson.category = category;
+            lesson.level = level;
+
+            // שמור את השיעור המעודכן
+            const update = await lesson.save();
+            return res.json(update); 
+        } catch (error) {
+            next(error); // הפניית השגיאה למידלוואר
         }
-
-        // חפש את השיעור בעזרת ה-id
-        const less = await Lesson.findById(_id).exec();
-        // אם השיעור לא נמצא, שלח הודעת שגיאה
-        if (!less) return res.status(400).send("not found");
-
-        // עדכן את ה-category וה-level של השיעור
-        less.category = category;
-        less.level = level;
-
-        // שמור את השיעור המעודכן
-        const update = await less.save();
-        return res.json(update); 
     }
     return res.json({ msg: "permission denied" }); // אם המשתמש לא אדמין
 };
 
-export const deleteLesson = async (req, res) => {
+export const deleteLesson = async (req, res, next) => {
     if (req.user.role == "admin") {
         const { _id } = req.body;
-        const less = await Lesson.findById(_id);
-        const words = await Word.find({ lesson: less._id });
+        try {
+            const less = await Lesson.findById(_id);
+            if (!less) return res.status(400).send("not found");
 
-        if (!less) return res.status(400).send("not found");
+            const words = await Word.find({ lesson: less._id });
+            await Promise.all(words.map(word => word.deleteOne()));
 
-        words.map(word => word.deleteOne());
-        const result = await less.deleteOne();
-
-        const deleted = `${_id} deleted`;
-        return res.send(deleted);
+            await less.deleteOne();
+            const deleted = `${_id} deleted`;
+            return res.send(deleted);
+        } catch (error) {
+            next(error); // הפניית השגיאה למידלוואר
+        }
     }
     return res.json({ msg: "permission denied" });
 };
-
