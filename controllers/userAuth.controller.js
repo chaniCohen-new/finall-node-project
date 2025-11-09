@@ -33,8 +33,8 @@ export const login = async (req, res, next) => {
         role: user.role
     };
 
-    // צור טוקן גישה
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+// צור טוקן גישה עם תפקיד המשתמש
+const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     // החזר את הטוקן ואת תפקיד המשתמש
     res.json({ token: token, role: userToken.role });

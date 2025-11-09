@@ -10,6 +10,11 @@ import lessonRouter from './routes/lesson.router.js';
 import userRauter from './routes/user.router.js';
 import authRouter from './routes/auth.router.js';
 
+// ייבוא של מידלאוורים
+import {auth} from './middlewares/auth.middleware.js';
+import { errorHandler } from './middlewares/error.middleware.js';
+
+
 import { connectDB } from './config/db.js';
 
 // .env מרגע זה ניתן לקרוא בכל הקבצים בפרויקט את הנתונים מהקובץ
@@ -36,6 +41,7 @@ app.use('/lessons', lessonRouter);
 app.use('/users', userRauter);
 app.use('/auth', authRouter);
 
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -18,7 +18,7 @@ export const userJoi = {
         username: Joi.string().required().min(2),
         password: Joi.string().required().pattern(/^[a-zA-Z0-9]{8,30}$/),
         email: Joi.string().required().email(),
-        phone: Joi.string().pattern(/^\+?(972|0)(\-)?0?(([23489]{1}\d{7})|[5]{1}\d{8})$/),
+        phone: Joi.string(),
         role: Joi.string().valid('user', 'admin').default('user')
     }),
     updatePassword: Joi.object({

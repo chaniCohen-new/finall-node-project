@@ -5,17 +5,18 @@ import { validateBody } from '../middlewares/validate.middleware.js';
 import { lessonJoi } from '../models/lesson.model.js';
 
 const router = express.Router();
+import {auth} from '../middlewares/auth.middleware.js';
 
-router.post('/', validateBody(lessonJoi), createNewLesson);
+router.post('/',auth, validateBody(lessonJoi), createNewLesson);
 
-router.get('/', getAllLessons);
+router.get('/',auth, getAllLessons);
 
 router.get('/level/:level', getLessonsByLevel);
 
-router.get('/:id', getLessonById);
+router.get('/:id',auth, getLessonById);
 
-router.put('/:id',validateBody(lessonJoi), updateLesson);
+router.put('/:id',auth, validateBody(lessonJoi), updateLesson);
 
-router.delete('/', deleteLesson);
+router.delete('/',auth, deleteLesson);
 
 export default router;
