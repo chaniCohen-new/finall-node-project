@@ -73,3 +73,5 @@ export const deleteUser = async (req, res, next) => {
         next(error); // הפניית השגיאה למידלוואר
     }
 };
+
+export default { addUser, getAllUsers, getUsersById, deleteUser };

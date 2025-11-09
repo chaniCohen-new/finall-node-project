@@ -9,6 +9,7 @@ import examRouter from './routes/exam.route.js';
 import lessonRouter from './routes/lesson.router.js';
 import userRauter from './routes/user.router.js';
 import authRouter from './routes/auth.router.js';
+import wordRouter from './routes/word.router.js';
 
 // ייבוא של מידלאוורים
 import {auth} from './middlewares/auth.middleware.js';
@@ -40,6 +41,8 @@ app.use('/exams', examRouter);
 app.use('/lessons', lessonRouter);
 app.use('/users', userRauter);
 app.use('/', authRouter);
+app.use('/', wordRouter);
+
 
 app.use(errorHandler);
 
