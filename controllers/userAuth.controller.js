@@ -1,4 +1,4 @@
-import User, { userJoi } from "../models/user.model.js";
+import User from "../models/user.model.js";
 import bcrypt from 'bcryptjs';
 import jwt from "jsonwebtoken";
 
@@ -44,11 +44,12 @@ export const login = async (req, res, next) => {
 };
 
 export const register = async (req, res, next) => {
+    console.log("BODY:", req.body);
     const { username, password, email, phone, role } = req.body;
 
     // בדוק אם כל השדות הדרושים קיימים
     if (!username || !password) {
-        return res.status(400).json({ message: "All fields are required" });
+        return res.status(400).json({ message: "the eamail or the password are not exist" });
     }
 
     try {

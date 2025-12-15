@@ -10,6 +10,7 @@ import lessonRouter from './routes/lesson.router.js';
 import userRauter from './routes/user.router.js';
 import authRouter from './routes/auth.router.js';
 import wordRouter from './routes/word.router.js';
+import questionRouter from './routes/question.router.js'; // נקה את הנתיב בהתאם
 
 // ייבוא של מידלאוורים
 import {auth} from './middlewares/auth.middleware.js';
@@ -40,6 +41,7 @@ app.get('/', (req, res) => {
 app.use('/exams', examRouter);
 app.use('/lessons', lessonRouter);
 app.use('/users', userRauter);
+app.use('/', questionRouter);
 app.use('/', authRouter);
 app.use('/', wordRouter);
 
