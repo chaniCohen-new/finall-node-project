@@ -2,7 +2,7 @@ import Question from "../models/question.modal.js";
 
 export const createNewQuest = async (req, res, next) => {
     try {
-        if (req.user.role === "admin") {
+        // if (req.user.role === "admin") {
             const { lesson, optional, answer, question } = req.body;
             if (!question) return res.status(400).send("question is required!");
             if (!lesson) return res.status(400).send("lesson is required!");
@@ -15,7 +15,7 @@ export const createNewQuest = async (req, res, next) => {
             const wordx = await Question.create({ lesson, optional, answer, question });
             console.log("createNewQuest", wordx);
             return res.json(wordx);
-        }
+        // }
         return res.json({ msg: "permission denied" });
     } catch (error) {
         next(error); // מפנה למידלוור של השגיאות

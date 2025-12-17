@@ -7,16 +7,16 @@ import { lessonJoi } from '../models/lesson.model.js';
 const router = express.Router();
 import {auth} from '../middlewares/auth.middleware.js';
 
-router.post('/',auth, validateBody(lessonJoi), createNewLesson);
+router.post('/', validateBody(lessonJoi), createNewLesson);
 
-router.get('/',auth, getAllLessons);
+router.get('/', getAllLessons);
 
 router.get('/level/:level', getLessonsByLevel);
 
-router.get('/:id',auth, getLessonById);
+router.get('/:id', getLessonById);
 
-router.put('/:id',auth, validateBody(lessonJoi), updateLesson);
+router.put('/:id', validateBody(lessonJoi), updateLesson);
 
-router.delete('/',auth, deleteLesson);
+router.delete('/', deleteLesson);
 
 export default router;

@@ -1,7 +1,7 @@
 import Word from "../models/word.modal.js";
 
 export const createNewWord = async (req, res, next) => {
-    if (req.user.role === "admin") {
+    // if (req.user.role === "admin") {
         try {
             const { word, translating, lesson } = req.body;
             const imageUrl = req.file?.filename ? req.file.filename : ""; 
@@ -17,20 +17,20 @@ export const createNewWord = async (req, res, next) => {
             return res.json(wordx);
         } catch (error) {
             return next(error); // הפניית השגיאה למידלוואר
-        }
+        // }
     }
     return res.json({ msg: "permission denied" });
 };
 
 export const getAllWords = async (req, res, next) => {
-    if (req.user.role === "admin") {
+    // if (req.user.role === "admin") {
         try {
             const allLessons = await Word.find().sort({ word: 1 }).lean();
             return res.json(allLessons);
         } catch (error) {
             return next(error); // הפניית השגיאה למידלוואר
         }
-    }
+    // }
     return res.json({ msg: "permission denied" });
 };
 

@@ -2,7 +2,7 @@ import Lesson from '../models/lesson.model.js';
 import Word from '../models/word.modal.js';
 
 export const createNewLesson = async (req, res, next) => {
-    if (req.user.role == "admin") {
+    // if (req.user.role == "admin") {
         const { level, category } = req.body; 
         console.log("kkkkkkkkkkkkkkkkkkkkk", { level, category });
 
@@ -22,18 +22,18 @@ export const createNewLesson = async (req, res, next) => {
         } catch (error) {
             next(error); // הפניית השגיאה למידלוואר
         }
-    }
+    // }
     return res.json({ msg: "permission denied" }); // אם המשתמש לא אדמין
 };
 
 export const getAllLessons = async (req, res, next) => {
-    if (req.user.role == "admin") {
+    // if (req.user.role == "admin") {
         try {
             const allLessons = await Lesson.find().sort({ category: 1 }).lean();
             return res.json(allLessons);
         } catch (error) {
             next(error); // הפניית השגיאה למידלוואר
-        }
+        // }
     }
     return res.json({ msg: "permission denied" });
 };
