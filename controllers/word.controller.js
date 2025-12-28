@@ -4,7 +4,7 @@ export const createNewWord = async (req, res, next) => {
     // if (req.user.role === "admin") {
         try {
             const { word, translating, lesson } = req.body;
-            const imageUrl = req.file?.filename ? req.file.filename : ""; 
+        const imageUrl = req.file ? req.file.filename : ""; // אם קובץ קיים, אז קח את השם שלו
 
             if (!word) return res.status(400).send("word is required!");
             if (!translating) return res.status(400).send("translating is required!");
@@ -96,7 +96,7 @@ export const updateWord = async (req, res, next) => {
 };
 
 export const deleteWord = async (req, res, next) => {
-    if (req.user.role === "admin") {
+    // if (req.user.role === "admin") {
         const { _id } = req.body;
         try {
             const word = await Word.findById(_id);
@@ -107,8 +107,8 @@ export const deleteWord = async (req, res, next) => {
         } catch (error) {
             return next(error); // הפניית השגיאה למידלוואר
         }
-    }
-    return res.json({ msg: "permission denied" });
+    // }
+    // return res.json({ msg: "permission denied" });
 };
 
 export default { createNewWord, getAllWords, getWordById, getWordsByLessonId, updateWord, deleteWord };
