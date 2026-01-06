@@ -3,6 +3,8 @@ import express, { json, urlencoded } from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import { config } from 'dotenv';
+import path from 'path'; // ייבוי המודול path
+import { fileURLToPath } from 'url';
 
 // ייבוא של כל הראוטרים
 import examRouter from './routes/exam.route.js';
@@ -29,6 +31,15 @@ connectDB();
 
 app.use(json());
 app.use(urlencoded());
+
+// הקפיצה ל- __dirname עבור מודולי ES
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// הגדרת תיקית התמונות כסטטית
+app.use('/images', express.static(path.join(__dirname, 'images')));
+// app.use(express.static('/images'))
+
 // cors - גישה לכל קליינט
 app.use(cors());
 app.use(morgan('dev'));

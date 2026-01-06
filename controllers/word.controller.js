@@ -25,13 +25,23 @@ export const createNewWord = async (req, res, next) => {
 export const getAllWords = async (req, res, next) => {
     // if (req.user.role === "admin") {
         try {
-            const allLessons = await Word.find().sort({ word: 1 }).lean();
-            return res.json(allLessons);
+            const allWordsInLesson = await Word.find().populate('lesson').sort({ word: 1 });
+            
+            const wordsWithImages = allWordsInLesson.map(word => {
+                const imageUrl = word.Img ? `http://localhost:5000/images/${word.lesson.category}/${word.Img}` : null; // הנחה שהקטגוריה זמינה במילת ה-lesson שלך
+                return {
+                    ...word.toObject(),
+                    imageUrl
+                };
+            });
+            
+            return res.json(wordsWithImages);
         } catch (error) {
-            return next(error); // הפניית השגיאה למידלוואר
+            return next(error);
         }
+    
     // }
-    return res.json({ msg: "permission denied" });
+    // return res.json({ msg: "permission denied" });
 };
 
 export const getWordsByLessonId = async (req, res, next) => {

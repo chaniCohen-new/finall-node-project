@@ -31,7 +31,7 @@ export const getExamById = async (req, res, next) => {
 };
 
 export const addExam = async (req, res, next) => {
-    if (req.user.role === 'user') {
+    // if (req.user.role === 'user') {
         try {
             // בדיקות קלט
             const { mark, lesson } = req.body;
@@ -47,5 +47,5 @@ export const addExam = async (req, res, next) => {
             return next(error); // הפניית השגיאה למידלוואר
         }
     }
-    return res.status(403).json({ msg: "Permission denied" });
-};
+//     return res.status(403).json({ msg: "Permission denied" });
+// };

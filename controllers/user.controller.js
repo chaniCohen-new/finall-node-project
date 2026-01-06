@@ -5,7 +5,7 @@ export const addUser = async (req, res, next) => {
     const { username, password, email, phone, role } = req.body;
     const user = req.user;
 
-    // if (user.role === 'admin') {
+    if (user.role === 'admin') {
     try {
         const newUser = new User({ username, password, email, phone, role });
         await newUser.save();
@@ -13,13 +13,13 @@ export const addUser = async (req, res, next) => {
     } catch (error) {
         next(error); // הפניית השגיאה למידלוואר
     }
-    // } else {
-    //     return res.status(403).json({ message: 'Access denied. Only admins can add users.' });
-    // }
+    } else {
+        return res.status(403).json({ message: 'Access denied. Only admins can add users.' });
+    }
 };
 
 export const getAllUsers = async (req, res, next) => {
-    // if (req.user.role === "admin") {
+    if (req.user.role === "admin") {
     try {
         const allUsers = await User.find({}, { password: 0 }).sort({ name: 1 });
         return res.json(allUsers);
@@ -27,8 +27,8 @@ export const getAllUsers = async (req, res, next) => {
         next(error); // הפניית השגיאה למידלוואר
     }
 }
-//     return res.status(401).json({ msg: 'denied' });
-// };
+    return res.status(401).json({ msg: 'denied' });
+};
 
 export const getUsersById = async (req, res, next) => {
     if (req.user.role == "admin") {
@@ -125,19 +125,19 @@ export const updateUser = async (req, res, next) => {
 };
 
 export const deleteUser = async (req, res, next) => {
-    const _id = req.user?.role === "user" ? req.user._id : req.body._id;
+    // const _id = req.user?.role === "user" ? req.user._id : req.body._id;
 
     try {
-        const user = await User.findById(_id);
-        if (!user) return res.status(400).send("not found");
+        // const user = await User.findById(_id);
+        // if (!user) return res.status(404).send("not found");
 
         if (req.user?.role !== "user") {
-            const exams = await Exam.find({ user: _id });
+            const exams = await Exam.find({ user: req.user._id });
             await Promise.all(exams.map(exam => exam.deleteOne()));
         }
 
-        await user.deleteOne();
-        return res.send(`${_id} deleted`);
+        await User.deleteOne();
+        return res.send(`${req.user._id} deleted`);
     } catch (error) {
         next(error); // הפניית השגיאה למידלוואר
     }

@@ -5,10 +5,6 @@ import jwt from "jsonwebtoken";
 export const login = async (req, res, next) => {
     const { username, password } = req.body;
 
-    // בדוק אם כל השדות הדרושים קיימים
-    if (!username || !password) {
-        return res.status(400).json({ message: "All fields are required" });
-    }
 
     try {
         // חפש את המשתמש בבסיס הנתונים
@@ -18,7 +14,7 @@ export const login = async (req, res, next) => {
         }
 
         // השווה את הסיסמאות
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Unauthorized" });
         }
