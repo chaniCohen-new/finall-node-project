@@ -32,13 +32,7 @@ connectDB();
 app.use(json());
 app.use(urlencoded());
 
-// הקפיצה ל- __dirname עבור מודולי ES
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// הגדרת תיקית התמונות כסטטית
-app.use('/images', express.static(path.join(__dirname, 'images')));
-// app.use(express.static('/images'))
+app.use('/images', express.static('images'))
 
 // cors - גישה לכל קליינט
 app.use(cors());

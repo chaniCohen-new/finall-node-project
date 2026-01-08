@@ -1,5 +1,6 @@
 import User, { userJoi } from "../models/user.model.js";
 import Exam from "../models/exam.model.js";
+import bcrypt from 'bcrypt'; 
 
 export const addUser = async (req, res, next) => {
     const { username, password, email, phone, role } = req.body;
@@ -59,13 +60,42 @@ export const updateUser = async (req, res, next) => {
     try {
         const loggedInUserRole = req.user.role;
 
+        const updateUserData = async (userToUpdate, updateData) => {
+            const { username, password, email, name } = updateData;
+            if (!username) return res.status(400).send("Username is required!");
+
+            if (userToUpdate.username !== username) {
+                const usernameExists = await User.findOne({ username });
+                if (usernameExists && usernameExists._id.toString() !== userToUpdate._id.toString()) {
+                    return res.status(400).send("Username already in use!");
+                }
+            }
+
+            if (username.toLowerCase() !== username) {
+                return res.status(400).send("Username must be lowercase!");
+            }
+
+            if (password) {
+                if (!password) return res.status(400).send("Password cannot be empty!");
+                const hashPass = await bcrypt.hash(password, 10);
+                userToUpdate.password = hashPass; // עדכון סיסמה אם נמסרה
+            }
+
+            userToUpdate.username = username;
+            userToUpdate.email = email;
+            userToUpdate.name = name;
+
+            return await userToUpdate.save();
+        };
+
         // ניהול עדכון עבור המשתמשים עם תפקיד "admin"
         if (loggedInUserRole === "admin") {
-            const { _id, role } = req.body;
+            const { role } = req.body; // רק role נלקח מגוף הבקשה
+            const _id = req.params.id; // קבל את ה-ID מה-URL
             console.log("user", { _id, role });
-
-            if (!_id) return res.status(400).send("ID is required!");
-
+        
+            if (!_id) return res.status(400).send("ID is required!"); 
+        
             if (role && role !== "admin" && role !== "user") {
                 return res.status(400).send("Invalid role!");
             }
@@ -83,38 +113,10 @@ export const updateUser = async (req, res, next) => {
         // ניהול עדכון עבור משתמשים עם תפקיד "user"
         if (loggedInUserRole === "user") {
             const _id = req.user._id; // מזהה של המשתמש המחובר
-            const { username, password, email, name } = req.body;
-
-            if (!_id) return res.status(400).send("ID is required!");
-            if (!username) return res.status(400).send("Username is required!");
-
             const currentUser = await User.findById(_id);
             if (!currentUser) return res.status(404).send("User not found");
 
-            if (currentUser.username !== username) {
-                const usernameExists = await User.findOne({ username });
-                if (usernameExists && usernameExists._id.toString() !== _id) {
-                    return res.status(400).send("Username already in use!");
-                }
-            }
-
-            if (username.toLowerCase() !== username) {
-                return res.status(400).send("Username must be lowercase!");
-            }
-
-            let hashPass;
-            if (password) {
-                if (password === 0) return res.status(400).send("Password cannot be empty!");
-                hashPass = await bcrypt.hash(password, 10);
-            }
-
-            currentUser.username = username;
-            currentUser.password = hashPass ? hashPass : currentUser.password; // עדכון סיסמה רק אם נמסרה
-            currentUser.email = email;
-            currentUser.name = name;
-
-            const updatedUser = await currentUser.save();
-            console.log(updatedUser);
+            const updatedUser = await updateUserData(currentUser, req.body);
             return res.json(updatedUser);
         }
 

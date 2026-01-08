@@ -9,7 +9,7 @@ const router = Router();
 router.post('/', auth, validateBody(userJoi.register), addUser);
 router.get('/', auth, getAllUsers);
 router.get('/:id', auth, getUsersById);
-router.put('/', auth, updateUser)
+router.put('/:id', auth, updateUser)
 router.delete('/:id', auth, deleteUser);
 
 export default router;

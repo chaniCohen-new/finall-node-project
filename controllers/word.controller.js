@@ -1,14 +1,10 @@
 import Word from "../models/word.modal.js";
 
 export const createNewWord = async (req, res, next) => {
-    // if (req.user.role === "admin") {
+    if (req.user.role === "admin") {
         try {
             const { word, translating, lesson } = req.body;
         const imageUrl = req.file ? req.file.filename : ""; // אם קובץ קיים, אז קח את השם שלו
-
-            if (!word) return res.status(400).send("word is required!");
-            if (!translating) return res.status(400).send("translating is required!");
-            if (!lesson) return res.status(400).send("lesson is required!");
 
             const checkWTL = await Word.find({ word, translating, lesson });
             if (checkWTL?.length) return res.status(400).send("Word & Translation in this level already exist!");
@@ -17,13 +13,13 @@ export const createNewWord = async (req, res, next) => {
             return res.json(wordx);
         } catch (error) {
             return next(error); // הפניית השגיאה למידלוואר
-        // }
+        }
     }
     return res.json({ msg: "permission denied" });
 };
 
 export const getAllWords = async (req, res, next) => {
-    // if (req.user.role === "admin") {
+    if (req.user.role === "admin") {
         try {
             const allWordsInLesson = await Word.find().populate('lesson').sort({ word: 1 });
             
@@ -40,8 +36,8 @@ export const getAllWords = async (req, res, next) => {
             return next(error);
         }
     
-    // }
-    // return res.json({ msg: "permission denied" });
+    }
+    return res.json({ msg: "permission denied" });
 };
 
 export const getWordsByLessonId = async (req, res, next) => {
@@ -76,10 +72,6 @@ export const getWordById = async (req, res, next) => {
 export const updateWord = async (req, res, next) => {
     if (req.user.role === "admin") {
         const { _id, word, translating, lesson } = req.body;
-        if (!_id) return res.status(400).send("id is required!");
-        if (!word) return res.status(400).send("word is required!");
-        if (!translating) return res.status(400).send("translating is required!");
-        if (!lesson) return res.status(400).send("lesson is required!");
 
         try {
             const wordd = await Word.findOne({ _id });
@@ -106,7 +98,7 @@ export const updateWord = async (req, res, next) => {
 };
 
 export const deleteWord = async (req, res, next) => {
-    // if (req.user.role === "admin") {
+    if (req.user.role === "admin") {
         const { _id } = req.body;
         try {
             const word = await Word.findById(_id);
@@ -117,8 +109,8 @@ export const deleteWord = async (req, res, next) => {
         } catch (error) {
             return next(error); // הפניית השגיאה למידלוואר
         }
-    // }
-    // return res.json({ msg: "permission denied" });
+    }
+    return res.json({ msg: "permission denied" });
 };
 
 export default { createNewWord, getAllWords, getWordById, getWordsByLessonId, updateWord, deleteWord };
