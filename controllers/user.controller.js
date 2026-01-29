@@ -1,21 +1,55 @@
 import User, { userJoi } from "../models/user.model.js";
 import Exam from "../models/exam.model.js";
-import bcrypt from 'bcrypt'; 
+import bcrypt from 'bcrypt'; // וודא שייבאת את bcrypt
+
 
 export const addUser = async (req, res, next) => {
     const { username, password, email, phone, role } = req.body;
     const user = req.user;
 
-    if (user.role === 'admin') {
-    try {
-        const newUser = new User({ username, password, email, phone, role });
-        await newUser.save();
-        return res.status(201).json({ message: 'User added successfully', user: newUser });
-    } catch (error) {
-        next(error); // הפניית השגיאה למידלוואר
-    }
-    } else {
+    if (user.role !== 'admin') {
         return res.status(403).json({ message: 'Access denied. Only admins can add users.' });
+    }
+
+    try {
+        // וודא שכל השדות קיימים
+        if (!username || !password || !email || !phone || !role) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        // בדוק אם שם המשתמש כבר קיים
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Username already exists' });
+        }
+
+        // בדוק אם אימייל כבר קיים
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) {
+            return res.status(400).json({ message: 'Email already exists' });
+        }
+
+        // צפה שהתפקיד חוקי
+        if (role !== 'admin' && role !== 'user') {
+            return res.status(400).json({ message: 'Invalid role' });
+        }
+
+        const newUser = new User({ 
+            username, 
+            password, 
+            email, 
+            phone, 
+            role 
+        });
+
+        await newUser.save();
+        
+        return res.status(201).json({ 
+            message: 'User added successfully', 
+            user: newUser 
+        });
+    } catch (error) {
+        next(error);
     }
 };
 
@@ -59,70 +93,95 @@ export const getUsersById = async (req, res, next) => {
 export const updateUser = async (req, res, next) => {
     try {
         const loggedInUserRole = req.user.role;
+        const _id = req.params.id;
 
-        const updateUserData = async (userToUpdate, updateData) => {
-            const { username, password, email, name } = updateData;
-            if (!username) return res.status(400).send("Username is required!");
+        if (!_id) {
+            return res.status(400).json({ message: 'ID is required!' });
+        }
 
-            if (userToUpdate.username !== username) {
-                const usernameExists = await User.findOne({ username });
-                if (usernameExists && usernameExists._id.toString() !== userToUpdate._id.toString()) {
-                    return res.status(400).send("Username already in use!");
+        const userToUpdate = await User.findById(_id);
+        if (!userToUpdate) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // ✅ ניהול עדכון עבור admin
+        if (loggedInUserRole === 'admin') {
+            const { username, email, phone, role, password } = req.body;
+
+            // וודא שלא יותר מדי שדות עודכנו
+            if (username && username !== userToUpdate.username) {
+                const existingUser = await User.findOne({ username });
+                if (existingUser) {
+                    return res.status(400).json({ message: 'Username already exists' });
                 }
+                userToUpdate.username = username;
             }
 
-            if (username.toLowerCase() !== username) {
-                return res.status(400).send("Username must be lowercase!");
+            if (email && email !== userToUpdate.email) {
+                const existingEmail = await User.findOne({ email });
+                if (existingEmail) {
+                    return res.status(400).json({ message: 'Email already exists' });
+                }
+                userToUpdate.email = email;
             }
 
-            if (password) {
-                if (!password) return res.status(400).send("Password cannot be empty!");
+            if (phone) userToUpdate.phone = phone;
+
+            if (role && ['admin', 'user'].includes(role)) {
+                userToUpdate.role = role;
+            } else if (role) {
+                return res.status(400).json({ message: 'Invalid role' });
+            }
+
+            // עדכן סיסמה רק אם נמסרה
+            if (password && password.trim()) {
                 const hashPass = await bcrypt.hash(password, 10);
-                userToUpdate.password = hashPass; // עדכון סיסמה אם נמסרה
+                userToUpdate.password = hashPass;
             }
-
-            userToUpdate.username = username;
-            userToUpdate.email = email;
-            userToUpdate.name = name;
-
-            return await userToUpdate.save();
-        };
-
-        // ניהול עדכון עבור המשתמשים עם תפקיד "admin"
-        if (loggedInUserRole === "admin") {
-            const { role } = req.body; // רק role נלקח מגוף הבקשה
-            const _id = req.params.id; // קבל את ה-ID מה-URL
-            console.log("user", { _id, role });
-        
-            if (!_id) return res.status(400).send("ID is required!"); 
-        
-            if (role && role !== "admin" && role !== "user") {
-                return res.status(400).send("Invalid role!");
-            }
-
-            const userToUpdate = await User.findById(_id).exec();
-            if (!userToUpdate) return res.status(404).send("User not found");
-
-            userToUpdate.role = role || userToUpdate.role; // עדכון תפקיד אם נמסר
 
             const updatedUser = await userToUpdate.save();
-            console.log(updatedUser);
-            return res.json(updatedUser);
+            return res.json({ 
+                message: 'User updated successfully',
+                user: updatedUser 
+            });
         }
 
-        // ניהול עדכון עבור משתמשים עם תפקיד "user"
-        if (loggedInUserRole === "user") {
-            const _id = req.user._id; // מזהה של המשתמש המחובר
-            const currentUser = await User.findById(_id);
-            if (!currentUser) return res.status(404).send("User not found");
+        // ✅ ניהול עדכון עבור user (עדכון עצמי בלבד)
+        if (loggedInUserRole === 'user') {
+            const currentUserId = req.user._id.toString();
+            const targetUserId = _id.toString();
 
-            const updatedUser = await updateUserData(currentUser, req.body);
-            return res.json(updatedUser);
+            if (currentUserId !== targetUserId) {
+                return res.status(403).json({ message: 'You can only update your own profile' });
+            }
+
+            const { email, phone, password } = req.body;
+
+            if (email && email !== userToUpdate.email) {
+                const existingEmail = await User.findOne({ email });
+                if (existingEmail) {
+                    return res.status(400).json({ message: 'Email already exists' });
+                }
+                userToUpdate.email = email;
+            }
+
+            if (phone) userToUpdate.phone = phone;
+
+            if (password && password.trim()) {
+                const hashPass = await bcrypt.hash(password, 10);
+                userToUpdate.password = hashPass;
+            }
+
+            const updatedUser = await userToUpdate.save();
+            return res.json({ 
+                message: 'Profile updated successfully',
+                user: updatedUser 
+            });
         }
 
-        return res.status(403).send("Forbidden!"); // בתור כלל יסודי אם לא עונה לאף תנאי
+        return res.status(403).json({ message: 'Forbidden' });
     } catch (error) {
-        next(error); // הפניית השגיאה למידלוואר
+        next(error);
     }
 };
 
