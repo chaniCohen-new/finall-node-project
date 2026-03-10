@@ -1,51 +1,110 @@
 import Exam from "../models/exam.model.js";
 
-export const getAllExams = async (req, res, next) => {
-    if (req.user.role === 'admin')
+// ✅ חדש: קבלת ציונים של משתמש מסוים
+export const getExamsByUserId = async (req, res, next) => {
+    const { userId } = req.params;
+
+    // בדיקה: המשתמש יכול לראות רק את הציונים שלו, או הוא admin
+    if (req.user._id.toString() !== userId && req.user.role !== 'admin') {
+        return res.status(403).json({ msg: "permission denied" });
+    }
+
     try {
-        const exams = await Exam.find();
+        const exams = await Exam.find({ user: userId })
+            .populate('lesson'); // ✅ הבא גם את פרטי השיעור
+
+        if (!exams || exams.length === 0) {
+            return res.json([]);
+        }
+
         return res.json(exams);
     } catch (error) {
-        return next(error); // הפניית השגיאה למידלוואר
+        return next(error);
     }
-    return res.json({ msg: "permission denied" })
+};
+
+export const getAllExams = async (req, res, next) => {
+    if (req.user.role !== 'admin') {  // ✅ הוסף !==
+        return res.status(403).json({ msg: "permission denied" });
+    }
+
+    try {
+        const exams = await Exam.find().populate('lesson');
+        return res.json(exams);
+    } catch (error) {
+        return next(error);
+    }
 };
 
 export const getExamById = async (req, res, next) => {
     const { id } = req.params;
-    if (req.user.role === 'user') {
-        try {
-            const exam = await Exam.findOne({ _id: id }); // SELECT * FROM exams WHERE _id=id
-            if (!exam) {
-                return next({
-                    error: new Error(`exam ${id} not found!`), // הוספת גרשיים
-                    status: 404
-                });
-            }
-            return res.json(exam);
-        } catch (error) {
-            return next(error); // הפניית השגיאה למידלוואר
-        }
+
+    // ✅ תוקן: צריך להיות user או admin
+    if (req.user.role !== 'user' && req.user.role !== 'admin') {
+        return res.status(403).json({ msg: "permission denied" });
     }
-    return res.json({ msg: "permission denied" });
+
+    try {
+        const exam = await Exam.findOne({ _id: id }).populate('lesson');
+
+        if (!exam) {
+            return next({
+                error: new Error(`exam ${id} not found!`),
+                status: 404
+            });
+        }
+
+        // ✅ בדיקה: המשתמש יכול לראות רק את הציונים שלו, או הוא admin
+        if (exam.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ msg: "permission denied" });
+        }
+
+        return res.json(exam);
+    } catch (error) {
+        return next(error);
+    }
 };
 
 export const addExam = async (req, res, next) => {
-    if (req.user.role === 'user') {
-        try {
-            // בדיקות קלט
-            const { mark, lesson } = req.body;
-            if (!mark || !lesson) {
-                return res.status(400).json({ msg: "Mark and lesson are required." });
-            }
+    try {
+        const { mark, lesson } = req.body;
+        const userId = req.user._id;
 
-            // יצירת המבחן החדש
-            const newExam = new Exam(req.body);
-            await newExam.save();
-            return res.status(201).json(newExam);
-        } catch (error) {
-            return next(error); // הפניית השגיאה למידלוואר
-        }
+        const newExam = new Exam({
+            user: userId,
+            mark,
+            lesson
+        });
+
+        await newExam.save();
+        const populatedExam = await newExam.populate('lesson'); // ✅ הבא את השיעור
+        res.json(populatedExam);
+    } catch (error) {
+        return next(error);
     }
-    return res.status(403).json({ msg: "Permission denied" });
+};
+
+export const deleteExam = async (req, res, next) => {
+    const { id } = req.body;
+
+    try {
+        const exam = await Exam.findOne({ _id: id });
+
+        if (!exam) {
+            return next({
+                error: new Error(`exam ${id} not found!`),
+                status: 404
+            });
+        }
+
+        // ✅ רק המשתמש שלו או admin יכולים למחוק
+        if (exam.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ msg: "permission denied" });
+        }
+
+        await Exam.deleteOne({ _id: id });
+        return res.json({ msg: "exam deleted successfully" });
+    } catch (error) {
+        return next(error);
+    }
 };

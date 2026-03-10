@@ -21,7 +21,6 @@ import { errorHandler } from './middlewares/error.middleware.js';
 
 import { connectDB } from './config/db.js';
 
-// .env מרגע זה ניתן לקרוא בכל הקבצים בפרויקט את הנתונים מהקובץ
 config();
 
 // יצירת השרת
@@ -48,7 +47,7 @@ app.use('/lessons', lessonRouter);
 app.use('/users', userRauter);
 app.use('/', questionRouter);
 app.use('/', authRouter);
-app.use('/', wordRouter);
+app.use('/words', wordRouter);
 
 
 app.use(errorHandler);

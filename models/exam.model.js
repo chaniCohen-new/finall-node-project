@@ -25,7 +25,7 @@ export const examJoi = Joi.object({
         .max(100)
         .required(),
     lesson: joiObjectId().required(),
-    user: joiObjectId().required() 
+    user: joiObjectId().optional() 
 });
 
 export default model("Exam", examModel);

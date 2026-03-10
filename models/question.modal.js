@@ -9,9 +9,12 @@ const questionModel = new Schema({
     answer: {
         type: String,
     },
-    optional: {
-        type: [String],
-    },
+    optional: [
+        {
+            type: String,
+            trim: true,
+        },
+    ], 
     lesson: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Lesson"

@@ -4,18 +4,20 @@ export const createNewWord = async (req, res, next) => {
     if (req.user.role === "admin") {
         try {
             const { word, translating, lesson } = req.body;
-        const imageUrl = req.file ? req.file.filename : ""; // אם קובץ קיים, אז קח את השם שלו
+            const imageUrl = req.file ? req.file.filename : ""; 
 
-            const checkWTL = await Word.find({ word, translating, lesson });
-            if (checkWTL?.length) return res.status(400).send("Word & Translation in this level already exist!");
+            const checkWTL = await Word.findOne({ word, translating, lesson });
+            if (checkWTL) return res.status(400).json({ message: "Word & Translation in this level already exist!" });
 
             const wordx = await Word.create({ word, translating, Img: imageUrl, lesson });
-            return res.json(wordx);
+            
+            // ✅ משדר בפורמט עקבי
+            return res.json({ word: wordx });
         } catch (error) {
-            return next(error); // הפניית השגיאה למידלוואר
+            return next(error);
         }
     }
-    return res.json({ msg: "permission denied" });
+    return res.status(403).json({ msg: "permission denied" });
 };
 
 export const getAllWords = async (req, res, next) => {
@@ -78,9 +80,15 @@ export const updateWord = async (req, res, next) => {
             if (!wordd) return res.status(400).send("not exist");
 
             const imageUrl = req.file?.filename ? req.file.filename : wordd.Img || ""; 
+            
             if (wordd.word !== word || wordd.translating !== translating || wordd.lesson !== lesson) {
-                const checkWTL = await Word.findOne({ _id, word, translating, lesson });
-                if (checkWTL?.length && checkWTL._id !== _id) return res.status(400).send("word & translating in this lesson already exist!");
+                const checkWTL = await Word.findOne({ 
+                    word, 
+                    translating, 
+                    lesson,
+                    _id: { $ne: _id } // בדוק שלא המילה הנוכחית
+                });
+                if (checkWTL) return res.status(400).send("word & translating in this lesson already exist!");
             }
 
             wordd.word = word;
@@ -89,12 +97,14 @@ export const updateWord = async (req, res, next) => {
             wordd.Img = imageUrl;
 
             const update = await wordd.save();
-            return res.json(update);
+            
+            // ✅ משדר בפורמט עקבי עם addWord
+            return res.json({ word: update });
         } catch (error) {
-            return next(error); // הפניית השגיאה למידלוואר
+            return next(error);
         }
     }
-    return res.json({ msg: "permission denied" });
+    return res.status(403).json({ msg: "permission denied" });
 };
 
 export const deleteWord = async (req, res, next) => {

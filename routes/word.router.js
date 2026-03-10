@@ -15,11 +15,16 @@ import { auth } from '../middlewares/auth.middleware.js';
 const router = express.Router();
 const upload = multer({ dest: 'images/' }); // הגדרת תיקיית העלאת הקבצים ל-images
 
-router.post('/words',auth, validateBody(wordJoi), upload.single('image'), createNewWord);
-router.get('/words',auth, getAllWords);
-router.get('/words/:id',auth, getWordById);
-router.get('/words/lesson/:lesson', getWordsByLessonId);
-router.put('/words',auth, validateBody(wordJoi), updateWord);
-router.delete('/words',auth, deleteWord);
+// ראשית - routes ספציפיים (עם פרמטר מסוים בנתיב)
+router.get('/lesson/:lesson', getWordsByLessonId); // ✅ קודם!
+router.get('/:id', auth, getWordById);
+
+// שנית - routes כלליים
+router.post('/', auth, validateBody(wordJoi), upload.single('image'), createNewWord);
+router.get('/', auth, getAllWords);
+
+// שלישית - routes עם פעולות (PUT, DELETE)
+router.put('/:id', auth, validateBody(wordJoi), upload.single('image'), updateWord); // ✅ עם ID!
+router.delete('/:id', auth, deleteWord); // ✅ עם ID!
 
 export default router;

@@ -1,29 +1,50 @@
 import jwt from "jsonwebtoken";
 
-// מידלאוור לבדוק הרשאות משתמש
 export const auth = (req, res, next) => {
     try {
         const { authorization } = req.headers;
         console.log('Authorization header:', authorization);
 
         if (!authorization) {
-            return next({ error: new Error('Authorization header is missing'), status: 401 });
+            return next({ 
+                error: new Error('Authorization header is missing'), 
+                status: 401 
+            });
         }
 
-        const [, token] = authorization.split(' '); // כאן אתה מגדיר את ה-token
-        console.log('Token:', token); // עכשיו זה יפעל
+        // ✅ בדוק שה-format הוא "Bearer TOKEN"
+        if (!authorization.startsWith('Bearer ')) {
+            return next({ 
+                error: new Error('Invalid authorization format'), 
+                status: 401 
+            });
+        }
+
+        const token = authorization.slice(7); // ✅ הוצא את ה-token אחרי "Bearer "
+        
+        console.log('Token:', token);
+
+        if (!token) {
+            return next({ 
+                error: new Error('Token is empty'), 
+                status: 401 
+            });
+        }
 
         const secretKey = process.env.JWT_SECRET ?? 'SecretKey';
         const currentUser = jwt.verify(token, secretKey);
 
-        // שמירת נתוני המשתמש ב-req.user
         req.user = {
-            _id: currentUser.userId, // הנח שה-ID של המשתמש נמצא ב-userId
-            role: String(currentUser.role) // המרת ה-role למחרוזת
+            _id: currentUser.userId,
+            role: String(currentUser.role)
         };
 
         next();
     } catch (error) {
-        return next({ error: new Error('Authorization failed'), status: 401 });
+        console.error('Auth error:', error.message);
+        return next({ 
+            error: new Error('Authorization failed'), 
+            status: 401 
+        });
     }
 };
