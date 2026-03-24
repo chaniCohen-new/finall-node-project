@@ -24,7 +24,7 @@ router.post('/', auth, validateBody(wordJoi), upload.single('image'), createNewW
 router.get('/', auth, getAllWords);
 
 // שלישית - routes עם פעולות (PUT, DELETE)
-router.put('/:id', auth, validateBody(wordJoi), upload.single('image'), updateWord); // ✅ עם ID!
-router.delete('/:id', auth, deleteWord); // ✅ עם ID!
+router.put('/:id', auth, validateBody(wordJoi), upload.single('image'), updateWord); 
+router.delete('/', auth, deleteWord); 
 
 export default router;

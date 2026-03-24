@@ -23,6 +23,7 @@ const userSchema = new Schema({
         type: String,
         enum: ['user', 'admin'],
         default: 'user',
+        immutable: true,
     },
 });
 
@@ -43,7 +44,7 @@ export const userJoi = {
         password: Joi.string().required().messages({'any.required': '❌ סיסמה חובה'}),
     }),
     register: Joi.object({
-        username: Joi.string().required().min(3).alphanum(),
+        username: Joi.string().required().min(3),
         email: Joi.string().required().email(),
         password: Joi.string().required().min(8),
         phone: Joi.string().optional(),

@@ -13,6 +13,10 @@ const examModel = new Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 });
 
@@ -20,12 +24,12 @@ const joiObjectId = JoiObjectId(Joi);
 
 export const examJoi = Joi.object({
     mark: Joi.number()
-        // .pattern(/^[0-9]{1,2}(\.[0-9]{1,2})?$/) // בדיקה שהציון הוא מספר עם עד 2 ספרות שלמות ועד 2 ספרות אחרי הנקודה
         .min(0) 
         .max(100)
         .required(),
     lesson: joiObjectId().required(),
-    user: joiObjectId().optional() 
+    user: joiObjectId().optional(),
+    createdAt: Joi.date().optional()  
 });
 
 export default model("Exam", examModel);

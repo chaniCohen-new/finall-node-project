@@ -67,17 +67,18 @@ export const getExamById = async (req, res, next) => {
 
 export const addExam = async (req, res, next) => {
     try {
-        const { mark, lesson } = req.body;
+        const { mark, lesson, createdAt } = req.body;  
         const userId = req.user._id;
 
         const newExam = new Exam({
             user: userId,
             mark,
-            lesson
+            lesson,
+            createdAt: createdAt || new Date()  
         });
 
         await newExam.save();
-        const populatedExam = await newExam.populate('lesson'); // ✅ הבא את השיעור
+        const populatedExam = await newExam.populate('lesson'); 
         res.json(populatedExam);
     } catch (error) {
         return next(error);

@@ -186,21 +186,36 @@ export const updateUser = async (req, res, next) => {
 };
 
 export const deleteUser = async (req, res, next) => {
-    // const _id = req.user?.role === "user" ? req.user._id : req.body._id;
-
     try {
-        // const user = await User.findById(_id);
-        // if (!user) return res.status(404).send("not found");
-
-        if (req.user?.role !== "user") {
-            const exams = await Exam.find({ user: req.user._id });
-            await Promise.all(exams.map(exam => exam.deleteOne()));
+        // ✅ בדוק הרשאות - רק מנהל יכול למחוק
+        if (req.user?.role !== "admin") {
+            return res.status(403).json({ message: "❌ רק מנהל יכול למחוק משתמשים" });
         }
 
-        await User.deleteOne();
-        return res.send(`${req.user._id} deleted`);
+        const userId = req.body._id;
+
+        if (!userId) {
+            return res.status(400).json({ message: "❌ User ID is required" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "❌ User not found" });
+        }
+
+        // ✅ מחק את כל הבחנים של המשתמש
+        const exams = await Exam.find({ user: userId });
+        await Promise.all(exams.map(exam => exam.deleteOne()));
+
+        // ✅ מחק את המשתמש
+        await User.findByIdAndDelete(userId);
+        
+        return res.json({ 
+            message: `✅ User deleted successfully`,
+            deletedUserId: userId 
+        });
     } catch (error) {
-        next(error); // הפניית השגיאה למידלוואר
+        next(error);
     }
 };
 
